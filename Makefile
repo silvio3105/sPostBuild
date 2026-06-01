@@ -18,7 +18,8 @@ CFLAGS = -Wall -Wextra -std=c++17
 # Compiler name
 TC_CC = g++.exe
 
-
+# Makefile name
+MAKEFILE = Makefile
 
 
 ######################################
@@ -33,6 +34,7 @@ INCLUDE_PATHS = \
 
 DEFINES = \
 
+
 ######################################
 # BUILD
 ######################################
@@ -44,11 +46,11 @@ vpath %.cpp $(sort $(dir $(CPP_FILES)))
 all: $(TARGET)
 
 # Compile
-$(DIR_BUILD)/%.o: %.cpp
+$(DIR_BUILD)/%.o: %.cpp | $(MAKEFILE)
 	$(TC_CC) $(CFLAGS) $(OPTIMIZATION) $(DEFINES) $(INCLUDE_PATHS) -c $< -o $@
 
 # Link
-$(TARGET): $(OBJECTS) | $(DIR_OUTPUT) 
+$(TARGET): $(OBJECTS) | $(DIR_OUTPUT) $(MAKEFILE)
 	$(TC_CC) $(OBJECTS) -o $@
 
 # Create build directory
