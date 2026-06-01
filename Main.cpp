@@ -8,10 +8,9 @@
  */
 
 // ----- INCLUDE FILES
-#include			<string>
+#include			<cstdint>
 #include			<iostream>
-#include			<windows.h>
-#include			<stdint.h>
+#include			<fstream>
 
 
 // ----- STATIC FUNCTION DECLARATIONS
@@ -113,7 +112,13 @@ namespace ModbusCRC
 };
 
 
-// ----- APPLICATION ENTRY POINT
+// ----- FUNCTION DEFINITIONS
+/**
+ * @brief Application entry point.
+ * 
+ * @param argc Number of arguments.
+ * @param argv Pointer to list of arguments.
+ */
 int main(int argc, char* argv[])
 {
 	static constexpr char tmp[] = "Hello World!";
@@ -129,7 +134,7 @@ int main(int argc, char* argv[])
 	uint32_t checksum;
 	ModbusCRC::init(checksum);
 	ModbusCRC::calculate(checksum, tmp, sizeof(tmp) - 1);
-	std::cout << "Checksum: " << std::hex << checksum << std::endl;
+	std::cout << "Checksum: " << std::hex << checksum << std::dec << std::endl;
 
 	//std::cin.get();
 	return 0;
