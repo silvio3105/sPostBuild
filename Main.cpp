@@ -16,8 +16,14 @@
 int main(int argc, char* argv[])
 {
 	std::cout << std::endl << "Hello World." << std::endl;
+	std::cout << "Argc: " << argc << std::endl;
 
-	std::cin.get();
+	for (int i = 0; i < argc; i++)
+	{
+		std::cout << "- Arg" << i << ": " << argv[i] << std::endl;
+	}
+
+	//std::cin.get();
 	return 0;
 }
 
