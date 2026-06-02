@@ -39,7 +39,7 @@ List of supported arguments
 
 `sBuildProbe --file fw.bin --checksum-offset 100 --size-offset FC --salt-pre Hello --salt-post World --alignment 4`
 
-Application will fill build struct in `fw.bin` file. Checksum word is offseted `0x100` bytes. Size word is offseted `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for checksum algorithm. File size must be divisible by 4(32-bit).
+Application will write build info to `fw.bin` file. Checksum word is offseted `0x100` bytes. Size word is offseted `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for checksum algorithm. File size must be divisible by 4(32-bit).
 
 If `--alignment` is provided(and not `0`) file size will be checked. If size is not divisible, program will exit.
 Before calculating checksum file size will be written at `--size-offset`.
