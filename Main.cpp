@@ -18,13 +18,18 @@
 
 // ----- STATIC FUNCTION DEFINITIONS
 /**
- * @brief Init 
+ * @brief Swap byte order.
  * 
- * @param input 
+ * @param output Pointer to output.
+ * @param input Pointer to input.
+ * @param n Number of bytes to swap.
  */
-inline void modbusCRCInit(uint32_t& input)
+static inline void swapEndian(void* output, const void* input, const uint8_t n)
 {
-	input = 0xFFFFFFFF;
+	for (uint8_t i = 0; i < n; i++)
+	{
+		((uint8_t*)output)[i] = ((uint8_t*)input)[(n - 1) - i];
+	}
 }
 
 
@@ -121,7 +126,11 @@ namespace ModbusCRC
  */
 int main(int argc, char* argv[])
 {
-	static constexpr char tmp[] = "Hello World!";
+	uint32_t tmp = 0xDEADBEEF;
+	uint32_t pmt = 0;
+	static constexpr char str[] = "Hello World!";
+
+	swapEndian(&pmt, &tmp, sizeof(pmt));
 
 	std::cout << std::endl << "Hello World." << std::endl;
 	std::cout << "Argc: " << argc << std::endl;
@@ -133,8 +142,10 @@ int main(int argc, char* argv[])
 
 	uint32_t checksum;
 	ModbusCRC::init(checksum);
-	ModbusCRC::calculate(checksum, tmp, sizeof(tmp) - 1);
+	ModbusCRC::calculate(checksum, str, sizeof(str) - 1);
 	std::cout << "Checksum: " << std::hex << checksum << std::dec << std::endl;
+
+	std::cout << "Swap: " << std::hex << tmp << " ; " << pmt << std::dec << std::endl;
 
 	//std::cin.get();
 	return 0;
