@@ -8,6 +8,8 @@
  */
 
 // ----- INCLUDE FILES
+#include			<CLI11.hpp>
+
 #include			<cstdint>
 #include			<iostream>
 #include			<fstream>
@@ -126,31 +128,19 @@ namespace ModbusCRC
  */
 int main(int argc, char* argv[])
 {
-	uint32_t tmp = 0xDEADBEEF;
-	uint32_t pmt = 0;
-	static constexpr char str[] = "Hello World!";
+	CLI::App app{"sBuildProbe App description"};
+	argv = app.ensure_utf8(argv);
 
-	swapEndian(&pmt, &tmp, sizeof(pmt));
+	std::string filename = ".bin";
+	app.add_option("--file", filename, "Path to .bin file to process");
 
-	std::cout << std::endl << "Hello World." << std::endl;
-	std::cout << "Argc: " << argc << std::endl;
+	CLI11_PARSE(app, argc, argv);
 
-	for (int i = 0; i < argc; i++)
-	{
-		std::cout << "- Arg" << i << ": " << argv[i] << std::endl;
-	}
-
-	uint32_t checksum;
-	ModbusCRC::init(checksum);
-	ModbusCRC::calculate(checksum, str, sizeof(str) - 1);
-	std::cout << "Checksum: " << std::hex << checksum << std::dec << std::endl;
-
-	std::cout << "Swap: " << std::hex << tmp << " ; " << pmt << std::dec << std::endl;
-
-	std::fstream file("test.bin", std::ios::binary | std::ios::in | std::ios::out);
+	std::fstream file(filename, std::ios::binary | std::ios::in | std::ios::out);
 	if (!file)
 	{
 		std::cerr << "File open fail" << std::endl;
+		return 1;
 	}
 
 	file.seekg(0, std::ios::end);
