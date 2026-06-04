@@ -15,6 +15,52 @@
 #include			<fstream>
 
 
+// ----- ENUMS
+/**
+ * @brief Enum class with endian values.
+ * 
+ */
+enum class Endian_t : uint8_t
+{
+	Little = 0, /**< @brief Output is in little endian. */
+	Big /**< @brief Output is in big endian. */
+};
+
+
+// ----- STRUCTS
+/**
+ * @brief Struct for input from arguments.
+ * 
+ */
+struct Input_s
+{
+	std::string filePath = ""; /**< @brief Path to .bin file to process. */
+	uint32_t hashOffset = 0; /**< @brief Hash word offset in file. */
+	uint32_t sizeOffset = 0; /**< @brief Size word offset in file. */
+
+	Endian_t endian = Endian_t::Little; /**< @brief Output endian. */
+};
+
+/**
+ * @brief Struct with input file info.
+ * 
+ */
+struct File_s
+{
+	uint32_t size = 0; /**< @brief File size in bytes. */
+	uint32_t hash = 0; /**< @brief Calculated file hash. */
+};
+
+
+// ----- VARIABLES
+static constexpr char version[] = "v1.0rc1"; /**< @brief Application version. */
+static constexpr uint8_t hashSize = sizeof(uint32_t); /**< @brief Size in bytes of hash in file. */
+static constexpr uint8_t sizeSize = sizeof(uint32_t); /**< @brief Size in bytes of size in file. */
+
+static Input_s input; /**< @brief Input info from arguments. */
+static File_s fileInfo; /**< @brief Input file info. */
+
+
 // ----- STATIC FUNCTION DECLARATIONS
 
 
@@ -34,6 +80,21 @@ static inline void swapEndian(void* output, const void* input, const uint8_t n)
 	}
 }
 
+/**
+ * @brief Get file size.
+ * 
+ * @param file Reference to file.
+ * 
+ * @return File size in bytes.
+ */
+static std::streamsize getFileSize(std::fstream& file)
+{
+	file.seekg(0, std::ios::end);
+	const std::streamsize size = file.tellg();
+	file.seekg(0, std::ios::beg);
+	return size;
+}
+
 
 // ----- NAMESPACES
 /**
@@ -44,7 +105,7 @@ namespace ModbusCRC
 {
 	// FUNCTION DEFINITIONS
 	/**
-	 * @brief Prepare for checksum calculate.
+	 * @brief Prepare output for calculation.
 	 * 
 	 * @param var Reference to calculate output variable.
 	 */
@@ -128,34 +189,50 @@ namespace ModbusCRC
  */
 int main(int argc, char* argv[])
 {
+	// Prepare CLI parser
 	CLI::App app{"sBuildProbe App description"};
 	argv = app.ensure_utf8(argv);
 
-	std::string filename = ".bin";
-	app.add_option("--file", filename, "Path to .bin file to process");
+	app.add_option("--file", input.filePath, "Path to .bin file to process");
+	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file");
+	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file");
+	app.add_flag_callback("--big-endian", [&] { input.endian = Endian_t::Big; std::cout << "BE" << std::endl; });
 
 	CLI11_PARSE(app, argc, argv);
 
-	std::fstream file(filename, std::ios::binary | std::ios::in | std::ios::out);
+	// Open file
+	std::fstream file(input.filePath, std::ios::binary | std::ios::in | std::ios::out);
 	if (!file)
 	{
 		std::cerr << "File open fail" << std::endl;
 		return 1;
 	}
 
-	file.seekg(0, std::ios::end);
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
-	std::cout << "File size " << size << "B" << std::endl;
+	// Get file size
+	fileInfo.size = getFileSize(file);
 
-    file.seekp(4);
-    const char replacement[4] = { '1', '2', '3', '4' };
-    file.write(replacement, sizeof(replacement));	
+	// Validate offsets
+	if ((input.hashOffset - hashSize) >= fileInfo.size)
+	{
+		std::cerr << "Hash offset not valid" << std::endl;
+		return 1;
+	}
 
-	file.seekg(0, std::ios::end);
-    size = file.tellg();
-    file.seekg(0, std::ios::beg);
-	std::cout << "File size 2 " << size << "B" << std::endl;	
+	if ((input.sizeOffset - sizeSize) >= fileInfo.size)
+	{
+		std::cerr << "Size offset not valid" << std::endl;
+		return 1;
+	}	
+
+	if (input.hashOffset == input.sizeOffset)
+	{
+		std::cerr << "Offset overlap" << std::endl;
+		return 1;
+	}
+
+
+	std::cout << "File: " << input.filePath << " Offsets: " << input.hashOffset << "/" << input.sizeOffset << std::endl;
+	std::cout << "Endian " << static_cast<int>(input.endian) << std::endl;
 
 
 	//std::cin.get();
