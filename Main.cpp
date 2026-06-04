@@ -147,6 +147,18 @@ int main(int argc, char* argv[])
 
 	std::cout << "Swap: " << std::hex << tmp << " ; " << pmt << std::dec << std::endl;
 
+	std::ifstream file("test.bin", std::ios::binary);
+	if (!file)
+	{
+		std::cout << "File open fail" << std::endl;
+	}
+
+	file.seekg(0, std::ios::end);
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+	std::cout << "File size " << size << "B" << std::endl;
+
+
 	//std::cin.get();
 	return 0;
 }
