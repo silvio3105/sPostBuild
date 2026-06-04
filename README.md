@@ -24,8 +24,8 @@ List of supported arguments
 | Argument 					| Description 												|
 | --- 						| --- 														|
 | --file * 					| Path to `.bin` file to process							|
-| --hash-offset *			| Offset of hash bytes in `--file` in bytes. In hex			|
-| --size-offset	*			| Offset of size bytes in `--file` in bytes. In hex			|
+| --hash-offset *			| Offset of hash bytes in `--file` in bytes(eg. 0x4)		|
+| --size-offset	*			| Offset of size bytes in `--file` in bytes(eg. 0x8)		|
 | --big-endian				| Set output format to big endian							|
 | --salt-pre				| Salt string to process before `--file` 					|
 | --salt-post 				| Salt string to process after `--file`						|
@@ -37,7 +37,7 @@ List of supported arguments
 
 # Example
 
-`sBuildProbe --file fw.bin --hash-offset 100 --size-offset FC --salt-pre Hello --salt-post World --alignment 4`
+`sBuildProbe --file fw.bin --hash-offset 0x100 --size-offset 0xFC --salt-pre Hello --salt-post World --alignment 4`
 
 Application will write build info to `fw.bin` file. hash word is offseted `0x100` bytes. Size word is offseted `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for hash algorithm. File size must be divisible by 4(32-bit).
 
