@@ -26,6 +26,15 @@ enum class Endian_t : uint8_t
 	Big /**< @brief Output is in big endian. */
 };
 
+/**
+ * @brief Enum class with hash algorithms.
+ * 
+ */
+enum class Algorithm_t : uint8_t
+{
+	ModbusCRC /**< @brief Use ModbusCRC. */
+};
+
 
 // ----- STRUCTS
 /**
@@ -37,9 +46,14 @@ struct Input_s
 	std::string filePath = ""; /**< @brief Path to .bin file to process. */
 	uint32_t hashOffset = 0; /**< @brief Hash word offset in file. */
 	uint32_t sizeOffset = 0; /**< @brief Size word offset in file. */
+	std::string preSalt = ""; /**< @brief Pre salt string. */
+	std::string postSalt = ""; /**< @brief Post salt string. */
 
 	Endian_t endian = Endian_t::Little; /**< @brief Output endian. */
+	Algorithm_t algorithm = Algorithm_t::ModbusCRC; /**< @brief Hash algorithm. */
+	uint8_t aligment = 0; /**< @brief File size check divider. */
 };
+
 
 /**
  * @brief Struct with input file info.
@@ -59,6 +73,7 @@ static constexpr uint8_t sizeSize = sizeof(uint32_t); /**< @brief Size in bytes 
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
+static std::string tmpAlgorithm;
 
 
 // ----- STATIC FUNCTION DECLARATIONS
@@ -193,12 +208,17 @@ int main(int argc, char* argv[])
 	CLI::App app{"sBuildProbe App description"};
 	argv = app.ensure_utf8(argv);
 
-	app.add_option("--file", input.filePath, "Path to .bin file to process");
-	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file");
-	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file");
-	app.add_flag_callback("--big-endian", [&] { input.endian = Endian_t::Big; std::cout << "BE" << std::endl; });
+	app.add_option("--file", input.filePath, "Path to .bin file to process")->required();
+	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file")->required();
+	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file")->required();
+	app.add_option<uint8_t>("--aligment", input.aligment, "File size divider");
+	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc"}));
+	app.add_option("--pre-salt", input.preSalt, "Pre salt string");
+	app.add_option("--post-salt", input.postSalt, "Post salt string");
+	app.add_flag_callback("--big-endian", [&] { input.endian = Endian_t::Big; });
 
 	CLI11_PARSE(app, argc, argv);
+	input.algorithm = Algorithm_t::ModbusCRC;
 
 	// Open file
 	std::fstream file(input.filePath, std::ios::binary | std::ios::in | std::ios::out);
@@ -210,6 +230,15 @@ int main(int argc, char* argv[])
 
 	// Get file size
 	fileInfo.size = getFileSize(file);
+
+	if (input.aligment)
+	{
+		if (fileInfo.size % input.aligment)
+		{
+			std::cerr << "File size not valid" << std::endl;
+			return 1;
+		}
+	}
 
 	// Validate offsets
 	if ((input.hashOffset - hashSize) >= fileInfo.size)
@@ -232,7 +261,8 @@ int main(int argc, char* argv[])
 
 
 	std::cout << "File: " << input.filePath << " Offsets: " << input.hashOffset << "/" << input.sizeOffset << std::endl;
-	std::cout << "Endian " << static_cast<int>(input.endian) << std::endl;
+	std::cout << "Endian " << (int)input.endian << std::endl;
+	std::cout << "Salt: " << input.preSalt << " " << input.postSalt << std::endl;
 
 
 	//std::cin.get();
