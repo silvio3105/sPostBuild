@@ -1,8 +1,8 @@
 
 # About
 
-Simple application for completing [sBuildInfo](https://github.com/silvio3105/sBuildInfo) struct after embedded application build. Application writes `--file` size and calculated hash.
-It is possible to add pre and/or post salt string to hash calculation for additional security during device update.
+Simple tool for completing [sBuildInfo](https://github.com/silvio3105/sBuildInfo) struct after embedded application build. Application writes `--file` size and calculated hash.
+It is possible to add pre file and/or post file salt string to hash calculation for additional layer of security before device update.
 
 Application is built for 64-bit Windows 10 or newer using GCC 16.1.0 and MinGW-w64 14.0.0.
 
@@ -14,7 +14,7 @@ For now only Modbus CRC16 is supported.
 
 # Salt
 
-It is possible to add pre and/or post salt to hash calculation. Salt is used to prevent installing unoffical application onto device.
+It is possible to add pre file data and/or post file data salt to hash calculation. Salt is used to prevent updating device with unoffical application.
 
 
 # Arguments
@@ -27,24 +27,26 @@ List of supported arguments
 | --hash-offset *			| Offset of hash bytes in `--file` in bytes(eg. 0x4)		|
 | --size-offset	*			| Offset of size bytes in `--file` in bytes(eg. 0x8)		|
 | --big-endian				| Set output format to big endian							|
-| --salt-pre				| Salt string to process before `--file` 					|
-| --salt-post 				| Salt string to process after `--file`						|
+| --salt-pre				| Salt string to process before `--file` data				|
+| --salt-post 				| Salt string to process after `--file`	data				|
 | --algorithm				| Algorithm to use. Modbus CRC16 is used if not provided 	|
-| --alignment				| `--file` size must be divisible with number given with `--alignment`. Check is skipped if not provided or `0` provided. |
+| --alignment				| `--file` size must be divisible with number given with `--alignment`. Check is skipped if not provided or `0` is provided. |
+| --help, -h				| List of all supported options and flags					|
+| --version, -v				| Application version										|
 
 *: Required
 
 
 # Example
 
-`sBuildProbe --file fw.bin --hash-offset 0x100 --size-offset 0xFC --salt-pre Hello --salt-post World --alignment 4`
+`.\sPostBuild --file fw.bin --hash-offset 0x100 --size-offset 0xFC --salt-pre Hello --salt-post World --alignment 4`
 
-Application will write build info to `fw.bin` file. hash word is offseted `0x100` bytes. Size word is offseted `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for hash algorithm. File size must be divisible by 4(32-bit).
+Application will write build info to `fw.bin` file. Hash word is offset `0x100` bytes. Size word is offset `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for hash algorithm. File size must be divisible by 4(32-bit).
 
-If `--alignment` is provided(and not `0`) file size will be checked. If size is not divisible, program will exit.
+If `--alignment` is provided(and not `0`) file size will be checked. If size is not divisible with number provided with `--aligment`, application will exit.
 Before calculating hash file size will be written at `--size-offset`.
 
-Before processing data from input file, pre salt(if provided) `Hello` will be added in calculation. After file is processed, post salt(if provided) `World` will be added.
+Before processing data from input file, pre salt `Hello` will be added in calculation. After file is processed, post salt `World` will be added.
 Calculated hash is written at `--hash-offset`. hash word at `--hash-offset` is skipped.
 
 
