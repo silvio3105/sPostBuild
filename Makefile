@@ -7,7 +7,7 @@
 DIR_BUILD = .builds
 
 # Output name
-TARGET = sBuildProbe.exe
+TARGET = sPostBuild.exe
 
 # Build optimization
 OPTIMIZATION = -Ofast
