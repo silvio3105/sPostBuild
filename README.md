@@ -1,7 +1,7 @@
 
 # About
 
-Simple tool for completing [sBuildInfo](https://github.com/silvio3105/sBuildInfo) struct after embedded application build. Application writes `--file` size and calculated hash.
+Simple tool for completing [sBuildInfo](https://github.com/silvio3105/sBuildInfo) struct after embedded application build. Application writes `--file` size and calculated hash to provided location in `--file`.
 It is possible to add pre file and/or post file salt string to hash calculation for additional layer of security before device update.
 
 Application is built for 64-bit Windows 10 or newer using GCC 16.1.0 and MinGW-w64 14.0.0.
