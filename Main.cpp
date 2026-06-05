@@ -194,8 +194,8 @@ static std::streamsize getFileSize(std::fstream& file)
  * 
  * @param file Reference to file handle.
  * 
- * @return \c 0 on fail.
- * @return \c 1 on success. 
+ * @return \c 1 on fail.
+ * @return \c 0 on success. 
  */
 static int writeSize(std::fstream& file)
 {
@@ -216,6 +216,15 @@ static int writeSize(std::fstream& file)
 	return 0;
 }
 
+/**
+ * @brief Calculate file hash.
+ * 
+ * @param file Reference to file handle.
+ * @param output Reference to hash output.
+ * 
+ * @return \c 1 on fail.
+ * @return \c 0 on success.
+ */
 static uint32_t getHash(std::fstream& file, uint32_t& output)
 {
 	ModbusCRC::init(output);
