@@ -204,7 +204,7 @@ static int writeSize(std::fstream& file)
 
 	if (input.endian == Endian_t::Big)
 	{
-		swapEndian(&fileInfo.size, tmp, sizeof(fileInfo.size));
+		swapEndian(tmp, &fileInfo.size, sizeof(fileInfo.size));
 	}
 
 	file.seekp(input.sizeOffset);
@@ -285,7 +285,7 @@ static int writeHash(std::fstream& file)
 
 	if (input.endian == Endian_t::Big)
 	{
-		swapEndian(&fileInfo.hash, tmp, sizeof(fileInfo.hash));
+		swapEndian(tmp, &fileInfo.hash, sizeof(fileInfo.hash));
 	}
 
 	file.seekp(input.hashOffset);
