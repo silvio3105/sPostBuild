@@ -32,7 +32,7 @@ enum class Endian_t : uint8_t
  */
 enum class Algorithm_t : uint8_t
 {
-	ModbusCRC /**< @brief Use ModbusCRC. */
+	ModbusCRC16 /**< @brief Use ModbusCRC16. */
 };
 
 
@@ -50,7 +50,7 @@ struct Input_s
 	std::string postSalt = ""; /**< @brief Post salt string. */
 
 	Endian_t endian = Endian_t::Little; /**< @brief Output endian. */
-	Algorithm_t algorithm = Algorithm_t::ModbusCRC; /**< @brief Hash algorithm. */
+	Algorithm_t algorithm = Algorithm_t::ModbusCRC16; /**< @brief Hash algorithm. */
 	uint8_t aligment = 0; /**< @brief File size check divider. */
 };
 
@@ -246,7 +246,6 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 		return 1;
 	}
 	ModbusCRC::calculate(output, buffer.data(), input.hashOffset);
-	std::cout << "Hashing " << input.hashOffset << "B" << std::endl;
 
 	// After checksum
 	const uint32_t size = fileInfo.size - (input.hashOffset + sizeof(fileInfo.hash));
@@ -260,16 +259,41 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 		return 1;
 	}
 	ModbusCRC::calculate(output, buffer.data(), size);
-	std::cout << "Hashing " << size << "B" << std::endl;
 
 	// Insert post salt
 	if (input.postSalt.length())
 	{
-		std::cout << "Pre salt " << input.postSalt << std::endl;
+		std::cout << "Post salt " << input.postSalt << std::endl;
 		ModbusCRC::calculate(output, &input.postSalt[0], input.postSalt.length());
-	}	
+	}
 
-	std::cout << "Hash " << std::hex << output << std::dec << std::endl;
+	return 0;
+}
+
+/**
+ * @brief Write hash to the file.
+ * 
+ * @param file Reference to file handle.
+ * 
+ * @return \c 1 on fail.
+ * @return \c 0 on success. 
+ */
+static int writeHash(std::fstream& file)
+{
+	uint8_t tmp[sizeof(fileInfo.hash)];
+	memcpy(tmp, &fileInfo.hash, sizeof(tmp));
+
+	if (input.endian == Endian_t::Big)
+	{
+		swapEndian(&fileInfo.hash, tmp, sizeof(fileInfo.hash));
+	}
+
+	file.seekp(input.hashOffset);
+	if (!file.write((const char*)tmp, sizeof(fileInfo.hash)))
+	{
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -291,13 +315,13 @@ int main(int argc, char* argv[])
 	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file")->required();
 	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file")->required();
 	app.add_option<uint8_t>("--aligment", input.aligment, "File size divider");
-	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc"}));
-	app.add_option("--pre-salt", input.preSalt, "Pre salt string");
-	app.add_option("--post-salt", input.postSalt, "Post salt string");
+	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc16"}));
+	app.add_option("--pre-salt", input.preSalt, "Pre file salt string");
+	app.add_option("--post-salt", input.postSalt, "Post file salt string");
 	app.add_flag_callback("--big-endian", [&] { input.endian = Endian_t::Big; });
 
 	CLI11_PARSE(app, argc, argv);
-	input.algorithm = Algorithm_t::ModbusCRC;
+	input.algorithm = Algorithm_t::ModbusCRC16;
 
 	// Test
 	uint32_t xHash;
@@ -320,7 +344,6 @@ int main(int argc, char* argv[])
 
 	// Get file size
 	fileInfo.size = getFileSize(file);
-
 	if (input.aligment)
 	{
 		if (fileInfo.size % input.aligment)
@@ -349,6 +372,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// SOON: Add partial overlap check
+
 	// Write size to file
 	if (writeSize(file))
 	{
@@ -360,11 +385,16 @@ int main(int argc, char* argv[])
 	if (getHash(file, fileInfo.hash))
 	{
 		std::cerr << "Hash fail" << std::endl;
+		return 1;
 	}
 
-	std::cout << "File: " << input.filePath << " Offsets: " << input.hashOffset << "/" << input.sizeOffset << std::endl;
-	std::cout << "Endian " << (int)input.preSalt.length() << std::endl;
-	std::cout << "Salt: " << input.preSalt << " " << input.postSalt << std::endl;
+	if (writeHash(file))
+	{
+		std::cerr << "Hash write fail" << std::endl;
+		return 1;
+	}
+
+	std::cout << "File '" << input.filePath << "', " << fileInfo.size << "B, hash " << std::hex << fileInfo.hash << std::endl;
 
 	//std::cin.get();
 	return 0;
