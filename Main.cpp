@@ -68,47 +68,10 @@ struct File_s
 
 // ----- VARIABLES
 static constexpr char version[] = "v1.0rc1"; /**< @brief Application version. */
-static constexpr uint8_t hashSize = sizeof(uint32_t); /**< @brief Size in bytes of hash in file. */
-static constexpr uint8_t sizeSize = sizeof(uint32_t); /**< @brief Size in bytes of size in file. */
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
 static std::string tmpAlgorithm;
-
-
-// ----- STATIC FUNCTION DECLARATIONS
-
-
-// ----- STATIC FUNCTION DEFINITIONS
-/**
- * @brief Swap byte order.
- * 
- * @param output Pointer to output.
- * @param input Pointer to input.
- * @param n Number of bytes to swap.
- */
-static inline void swapEndian(void* output, const void* input, const uint8_t n)
-{
-	for (uint8_t i = 0; i < n; i++)
-	{
-		((uint8_t*)output)[i] = ((uint8_t*)input)[(n - 1) - i];
-	}
-}
-
-/**
- * @brief Get file size.
- * 
- * @param file Reference to file.
- * 
- * @return File size in bytes.
- */
-static std::streamsize getFileSize(std::fstream& file)
-{
-	file.seekg(0, std::ios::end);
-	const std::streamsize size = file.tellg();
-	file.seekg(0, std::ios::beg);
-	return size;
-}
 
 
 // ----- NAMESPACES
@@ -195,6 +158,112 @@ namespace ModbusCRC
 };
 
 
+// ----- STATIC FUNCTION DEFINITIONS
+/**
+ * @brief Swap byte order.
+ * 
+ * @param output Pointer to output.
+ * @param input Pointer to input.
+ * @param n Number of bytes to swap.
+ */
+static inline void swapEndian(void* output, const void* input, const uint8_t n)
+{
+	for (uint8_t i = 0; i < n; i++)
+	{
+		((uint8_t*)output)[i] = ((uint8_t*)input)[(n - 1) - i];
+	}
+}
+
+/**
+ * @brief Get file size.
+ * 
+ * @param file Reference to file.
+ * 
+ * @return File size in bytes.
+ */
+static std::streamsize getFileSize(std::fstream& file)
+{
+	file.seekg(0, std::ios::end);
+	const std::streamsize size = file.tellg();
+	file.seekg(0, std::ios::beg);
+	return size;
+}
+
+/**
+ * @brief Write size to the file.
+ * 
+ * @param file Reference to file handle.
+ * 
+ * @return \c 0 on fail.
+ * @return \c 1 on success. 
+ */
+static int writeSize(std::fstream& file)
+{
+	uint8_t tmp[sizeof(fileInfo.size)];
+	memcpy(tmp, &fileInfo.size, sizeof(tmp));
+
+	if (input.endian == Endian_t::Big)
+	{
+		swapEndian(&fileInfo.size, tmp, sizeof(fileInfo.size));
+	}
+
+	file.seekp(input.sizeOffset);
+	if (!file.write((const char*)tmp, sizeof(fileInfo.size)))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static uint32_t getHash(std::fstream& file, uint32_t& output)
+{
+	ModbusCRC::init(output);
+
+	// Insert pre salt
+	if (input.preSalt.length())
+	{
+		std::cout << "Pre salt " << input.preSalt << std::endl;
+		ModbusCRC::calculate(output, &input.preSalt[0], input.preSalt.length());
+	}
+
+	// Before checksum
+	file.seekg(0, std::ios::beg);
+	std::vector<char> buffer(input.hashOffset);
+
+	if (!file.read(buffer.data(), input.hashOffset))
+	{
+		std::cerr << "Read 1 fail" << std::endl;
+		return 1;
+	}
+	ModbusCRC::calculate(output, buffer.data(), input.hashOffset);
+	std::cout << "Hashing " << input.hashOffset << "B" << std::endl;
+
+	// After checksum
+	const uint32_t size = fileInfo.size - (input.hashOffset + sizeof(fileInfo.hash));
+	file.seekg(input.hashOffset + sizeof(fileInfo.hash), std::ios::beg);
+
+	buffer.resize(size);
+	if (!file.read(buffer.data(), size))
+	{
+		std::cerr << "Read 2 fail" << std::endl;
+		return 1;
+	}
+	ModbusCRC::calculate(output, buffer.data(), size);
+	std::cout << "Hashing " << size << "B" << std::endl;
+
+	// Insert post salt
+	if (input.postSalt.length())
+	{
+		std::cout << "Pre salt " << input.postSalt << std::endl;
+		ModbusCRC::calculate(output, &input.postSalt[0], input.postSalt.length());
+	}	
+
+	std::cout << "Hash " << std::hex << output << std::dec << std::endl;
+	return 0;
+}
+
+
 // ----- FUNCTION DEFINITIONS
 /**
  * @brief Application entry point.
@@ -241,13 +310,13 @@ int main(int argc, char* argv[])
 	}
 
 	// Validate offsets
-	if ((input.hashOffset - hashSize) >= fileInfo.size)
+	if ((input.hashOffset - sizeof(fileInfo.hash)) >= fileInfo.size)
 	{
 		std::cerr << "Hash offset not valid" << std::endl;
 		return 1;
 	}
 
-	if ((input.sizeOffset - sizeSize) >= fileInfo.size)
+	if ((input.sizeOffset - sizeof(fileInfo.size)) >= fileInfo.size)
 	{
 		std::cerr << "Size offset not valid" << std::endl;
 		return 1;
@@ -259,11 +328,22 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// Write size to file
+	if (writeSize(file))
+	{
+		std::cerr << "Size write fail" << std::endl;
+		return 1;
+	}
+
+	// Calculate hash
+	if (getHash(file, fileInfo.hash))
+	{
+		std::cerr << "Hash fail" << std::endl;
+	}
 
 	std::cout << "File: " << input.filePath << " Offsets: " << input.hashOffset << "/" << input.sizeOffset << std::endl;
-	std::cout << "Endian " << (int)input.endian << std::endl;
+	std::cout << "Endian " << (int)input.preSalt.length() << std::endl;
 	std::cout << "Salt: " << input.preSalt << " " << input.postSalt << std::endl;
-
 
 	//std::cin.get();
 	return 0;
