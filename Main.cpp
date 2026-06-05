@@ -252,6 +252,7 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 	const uint32_t size = fileInfo.size - (input.hashOffset + sizeof(fileInfo.hash));
 	file.seekg(input.hashOffset + sizeof(fileInfo.hash), std::ios::beg);
 
+	buffer.clear();
 	buffer.resize(size);
 	if (!file.read(buffer.data(), size))
 	{
@@ -297,6 +298,17 @@ int main(int argc, char* argv[])
 
 	CLI11_PARSE(app, argc, argv);
 	input.algorithm = Algorithm_t::ModbusCRC;
+
+	// Test
+	uint32_t xHash;
+	static uint8_t xTmp[44];
+	memset(xTmp, 0x11, sizeof(xTmp));
+	xTmp[4] = 48;
+	xTmp[5] = xTmp[6] = xTmp[7] = 0;
+
+	ModbusCRC::init(xHash);
+	ModbusCRC::calculate(xHash, xTmp, sizeof(xTmp));
+	std::cout << "Test hash " << std::hex << xHash << std::dec << std::endl;
 
 	// Open file
 	std::fstream file(input.filePath, std::ios::binary | std::ios::in | std::ios::out);
