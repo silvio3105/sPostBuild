@@ -67,11 +67,11 @@ struct File_s
 
 
 // ----- VARIABLES
-static constexpr char version[] = "v1.0rc1"; /**< @brief Application version. */
+static constexpr char version[] = "sPostBuild v1.0rc1"; /**< @brief Application version. */
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
-static std::string tmpAlgorithm;
+static std::string tmpAlgorithm; /**< @brief Selected algorithm to use. Not in use. */
 
 
 // ----- NAMESPACES
@@ -308,7 +308,8 @@ static int writeHash(std::fstream& file)
 int main(int argc, char* argv[])
 {
 	// Prepare CLI parser
-	CLI::App app{"sBuildProbe App description"};
+	CLI::App app{"sPostBuild tool for writing firmware size and its hash into build info"};
+	app.set_version_flag("--version,-v", version);
 	argv = app.ensure_utf8(argv);
 
 	app.add_option("--file", input.filePath, "Path to .bin file to process")->required();
