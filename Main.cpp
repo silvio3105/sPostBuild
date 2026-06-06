@@ -3,7 +3,7 @@
  * @author silvio3105 (www.github.com/silvio3105)
  * @brief Main source file.
  * 
- * @copyright Copyright (c) 2026, silvio310 (www.github.com/silvio3105)
+ * @copyright Copyright (c) 2026, silvio3105 (www.github.com/silvio3105)
  * 
  */
 
@@ -67,7 +67,7 @@ struct File_s
 
 
 // ----- VARIABLES
-static constexpr char version[] = "sPostBuild v1.0rc1"; /**< @brief Application version. */
+static constexpr char version[] = "sPostBuild v1.0rc2"; /**< @brief Application version. */
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
@@ -232,7 +232,7 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 	// Insert pre salt
 	if (input.preSalt.length())
 	{
-		std::cout << "Pre salt " << input.preSalt << std::endl;
+		std::cout << "Pre salt '" << input.preSalt << "'" << std::endl;
 		ModbusCRC::calculate(output, &input.preSalt[0], input.preSalt.length());
 	}
 
@@ -263,7 +263,7 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 	// Insert post salt
 	if (input.postSalt.length())
 	{
-		std::cout << "Post salt " << input.postSalt << std::endl;
+		std::cout << "Post salt '" << input.postSalt << "'" << std::endl;
 		ModbusCRC::calculate(output, &input.postSalt[0], input.postSalt.length());
 	}
 
@@ -308,7 +308,7 @@ static int writeHash(std::fstream& file)
 int main(int argc, char* argv[])
 {
 	// Prepare CLI parser
-	CLI::App app{"sPostBuild tool for writing firmware size and its hash into build info"};
+	CLI::App app{"\n\nsPostBuild tool for writing firmware size and its hash into build info\nCopyright (c) 2026, silvio3105 (www.github.com/silvio3105)"};
 	app.set_version_flag("--version,-v", version);
 	argv = app.ensure_utf8(argv);
 
