@@ -232,7 +232,6 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 	// Insert pre salt
 	if (input.preSalt.length())
 	{
-		std::cout << "Pre salt '" << input.preSalt << "'" << std::endl;
 		ModbusCRC::calculate(output, &input.preSalt[0], input.preSalt.length());
 	}
 
@@ -263,7 +262,6 @@ static uint32_t getHash(std::fstream& file, uint32_t& output)
 	// Insert post salt
 	if (input.postSalt.length())
 	{
-		std::cout << "Post salt '" << input.postSalt << "'" << std::endl;
 		ModbusCRC::calculate(output, &input.postSalt[0], input.postSalt.length());
 	}
 
