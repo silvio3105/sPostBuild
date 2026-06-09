@@ -383,8 +383,19 @@ int main(int argc, char* argv[])
 		std::cerr << "Hash write fail" << std::endl;
 		return 1;
 	}
+	file.close();
 
-	std::cout << "File '" << input.filePath << "', " << fileInfo.size << "B, hash " << std::hex << fileInfo.hash << std::endl;
+	if (input.preSalt.length())
+	{
+		std::cout << "[sPostBuild] Pre salt '" << input.preSalt << "'" << std::endl;
+	}
+
+	if (input.postSalt.length())
+	{
+		std::cout << "[sPostBuild] Post salt '" << input.postSalt << "'" << std::endl;
+	}	
+
+	std::cout << "[sPostBuild] Size " << fileInfo.size << "B and hash " << std::hex << fileInfo.hash << " for file '" << input.filePath << "'" << std::endl;
 
 	//std::cin.get();
 	return 0;
