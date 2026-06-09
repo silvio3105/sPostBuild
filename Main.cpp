@@ -51,7 +51,7 @@ struct Input_s
 
 	Endian_t endian = Endian_t::Little; /**< @brief Output endian. */
 	Algorithm_t algorithm = Algorithm_t::ModbusCRC16; /**< @brief Hash algorithm. */
-	uint8_t aligment = 0; /**< @brief File size check divider. */
+	uint8_t alignment = 0; /**< @brief File size check divider. */
 };
 
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
 	app.add_option("--file", input.filePath, "Path to .bin file to process")->required();
 	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file")->required();
 	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file")->required();
-	app.add_option<uint8_t>("--aligment", input.aligment, "File size divider");
+	app.add_option<uint8_t>("--alignment", input.alignment, "File size divider");
 	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc16"}));
 	app.add_option("--pre-salt", input.preSalt, "Pre file salt string");
 	app.add_option("--post-salt", input.postSalt, "Post file salt string");
@@ -334,9 +334,9 @@ int main(int argc, char* argv[])
 
 	// Get file size
 	fileInfo.size = getFileSize(file);
-	if (input.aligment)
+	if (input.alignment)
 	{
-		if (fileInfo.size % input.aligment)
+		if (fileInfo.size % input.alignment)
 		{
 			std::cerr << "File size not valid" << std::endl;
 			return 1;

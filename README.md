@@ -43,7 +43,7 @@ List of supported arguments
 
 Application will write build info to `fw.bin` file. Hash word is offset `0x100` bytes. Size word is offset `0xFC` bytes. Output is in little endian and Modbus CRC16 is used for hash algorithm. File size must be divisible by 4(32-bit).
 
-If `--alignment` is provided(and not `0`) file size will be checked. If size is not divisible with number provided with `--aligment`, application will exit.
+If `--alignment` is provided(and not `0`) file size will be checked. If size is not divisible with number provided with `--alignment`, application will exit.
 Before calculating hash file size will be written at `--size-offset`.
 
 Before processing data from input file, pre salt `Hello` will be added in calculation. After file is processed, post salt `World` will be added.
