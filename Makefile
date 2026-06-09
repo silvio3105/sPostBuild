@@ -15,6 +15,9 @@ OPTIMIZATION = -Ofast
 # Compiler flags
 CFLAGS = -Wall -Wextra -std=c++17
 
+# Linker flags
+LFLAGS = -static-libgcc -static-libstdc++ -static
+
 # Compiler name
 TC_CC = g++.exe
 
@@ -51,7 +54,7 @@ $(DIR_BUILD)/%.o: %.cpp | $(MAKEFILE)
 
 # Link
 $(TARGET): $(OBJECTS) | $(DIR_OUTPUT) $(MAKEFILE)
-	$(TC_CC) $(OBJECTS) -o $@
+	$(TC_CC) $(OBJECTS) $(LFLAGS) -o $@
 
 # Create build directory
 $(DIR_BUILD):
