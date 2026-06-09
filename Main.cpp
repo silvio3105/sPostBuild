@@ -344,13 +344,13 @@ int main(int argc, char* argv[])
 	}
 
 	// Validate offsets
-	if ((input.hashOffset - sizeof(fileInfo.hash)) >= fileInfo.size)
+	if ((input.hashOffset + sizeof(fileInfo.hash)) >= fileInfo.size)
 	{
 		std::cerr << "Hash offset not valid" << std::endl;
 		return 1;
 	}
 
-	if ((input.sizeOffset - sizeof(fileInfo.size)) >= fileInfo.size)
+	if ((input.sizeOffset + sizeof(fileInfo.size)) >= fileInfo.size)
 	{
 		std::cerr << "Size offset not valid" << std::endl;
 		return 1;
