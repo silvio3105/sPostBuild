@@ -67,7 +67,7 @@ struct File_s
 
 
 // ----- VARIABLES
-static constexpr char version[] = "sPostBuild v1.0rc2"; /**< @brief Application version. */
+static constexpr char version[] = "sPostBuild v1.0r1"; /**< @brief Application version. */
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
