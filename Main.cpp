@@ -339,6 +339,7 @@ int main(int argc, char* argv[])
 		if (fileInfo.size % input.alignment)
 		{
 			std::cerr << "File size not valid" << std::endl;
+			file.close();
 			return 1;
 		}
 	}
@@ -347,18 +348,21 @@ int main(int argc, char* argv[])
 	if ((input.hashOffset + sizeof(fileInfo.hash)) >= fileInfo.size)
 	{
 		std::cerr << "Hash offset not valid" << std::endl;
+		file.close();
 		return 1;
 	}
 
 	if ((input.sizeOffset + sizeof(fileInfo.size)) >= fileInfo.size)
 	{
 		std::cerr << "Size offset not valid" << std::endl;
+		file.close();
 		return 1;
 	}	
 
 	if (input.hashOffset == input.sizeOffset)
 	{
 		std::cerr << "Offset overlap" << std::endl;
+		file.close();
 		return 1;
 	}
 
@@ -368,6 +372,7 @@ int main(int argc, char* argv[])
 	if (writeSize(file))
 	{
 		std::cerr << "Size write fail" << std::endl;
+		file.close();
 		return 1;
 	}
 
@@ -375,12 +380,14 @@ int main(int argc, char* argv[])
 	if (getHash(file, fileInfo.hash))
 	{
 		std::cerr << "Hash fail" << std::endl;
+		file.close();
 		return 1;
 	}
 
 	if (writeHash(file))
 	{
 		std::cerr << "Hash write fail" << std::endl;
+		file.close();
 		return 1;
 	}
 	file.close();
