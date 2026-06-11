@@ -32,7 +32,7 @@ enum class Endian_t : uint8_t
  */
 enum class Algorithm_t : uint8_t
 {
-	ModbusCRC16 /**< @brief Use ModbusCRC16. */
+	ModbusCRC /**< @brief Use ModbusCRC. */
 };
 
 
@@ -50,7 +50,7 @@ struct Input_s
 	std::string postSalt = ""; /**< @brief Post salt string. */
 
 	Endian_t endian = Endian_t::Little; /**< @brief Output endian. */
-	Algorithm_t algorithm = Algorithm_t::ModbusCRC16; /**< @brief Hash algorithm. */
+	Algorithm_t algorithm = Algorithm_t::ModbusCRC; /**< @brief Hash algorithm. */
 	uint8_t alignment = 0; /**< @brief File size check divider. */
 };
 
@@ -67,7 +67,7 @@ struct File_s
 
 
 // ----- VARIABLES
-static constexpr char version[] = "sPostBuild v1.0r1 ; " __DATE__ " " __TIME__; /**< @brief Application version. */
+static constexpr char version[] = "sPostBuild v1.0r2 ; " __DATE__ " " __TIME__; /**< @brief Application version. */
 
 static Input_s input; /**< @brief Input info from arguments. */
 static File_s fileInfo; /**< @brief Input file info. */
@@ -89,7 +89,7 @@ namespace ModbusCRC
 	 */
 	inline void init(uint32_t& var)
 	{
-		var = 0xFFFFFFFF;
+		var = 0xFFFF;
 	}
 
 	/**
@@ -314,13 +314,13 @@ int main(int argc, char* argv[])
 	app.add_option<uint32_t>("--hash-offset", input.hashOffset, "Hash word offset in the file")->required();
 	app.add_option<uint32_t>("--size-offset", input.sizeOffset, "Size word offset in the file")->required();
 	app.add_option<uint8_t>("--alignment", input.alignment, "File size divider");
-	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc16"}));
+	app.add_option("--algorithm", tmpAlgorithm, "Hash algorithm to use")->check(CLI::IsMember({"modbuscrc"}));
 	app.add_option("--pre-salt", input.preSalt, "Pre file salt string");
 	app.add_option("--post-salt", input.postSalt, "Post file salt string");
 	app.add_flag_callback("--big-endian", [&] { input.endian = Endian_t::Big; });
 
 	CLI11_PARSE(app, argc, argv);
-	input.algorithm = Algorithm_t::ModbusCRC16;
+	input.algorithm = Algorithm_t::ModbusCRC;
 
 	// Open file
 	std::fstream file(input.filePath, std::ios::binary | std::ios::in | std::ios::out);

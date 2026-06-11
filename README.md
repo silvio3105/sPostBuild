@@ -9,7 +9,7 @@ Application is built for 64-bit Windows 10 or newer using GCC 16.1.0 and MinGW-w
 
 # Hash algorithms
 
-For now only Modbus CRC16 is supported.
+For now only Modbus CRC is supported.
 
 
 # Salt
@@ -29,7 +29,7 @@ List of supported arguments
 | --big-endian				| Set output format to big endian							|
 | --salt-pre				| Salt string to process before `--file` data				|
 | --salt-post 				| Salt string to process after `--file`	data				|
-| --algorithm				| Algorithm to use. Modbus CRC16 is used if not provided 	|
+| --algorithm				| Algorithm to use. Modbus CRC is used if not provided 		|
 | --alignment				| `--file` size must be divisible with number given with `--alignment`. Check is skipped if not provided or `0` is provided. |
 | --help, -h				| List of all supported options and flags					|
 | --version, -v				| Application version										|
